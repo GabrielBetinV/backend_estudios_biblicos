@@ -10,7 +10,7 @@ use Dotenv\Dotenv;
 
 // CORS
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With, Accept, Origin");
 header("Access-Control-Allow-Credentials: true");
 
@@ -25,19 +25,47 @@ $dotenv->load();
 
 $controller = new InscritoController();
 
-// Solo aceptamos GET
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+// Detectar método
+$method = $_SERVER['REQUEST_METHOD'];
 
-    // Obtener el parámetro id_curso desde la URL
+// ---- RUTAS ----
+
+// ✅ GET → Obtener cursos inscritos
+if ($method === 'GET') {
     if (isset($_GET['id_curso']) && !empty($_GET['id_curso'])) {
-        $idCurso = intval($_GET['id_curso']); // Convertimos a entero para mayor seguridad
-        $controller->getCursosInscritos($idCurso); // Llamamos al método del controlador
+        $idCurso = intval($_GET['id_curso']);
+        $controller->getCursosInscritos($idCurso);
     } else {
         http_response_code(400);
-        echo json_encode(["error" => "Se requiere el parámetro id_curso"]);
+        echo json_encode(["status" => "ERROR", "message" => "Se requiere el parámetro id_curso"]);
     }
+}
 
-} else {
-    http_response_code(405); // Método no permitido
-    echo json_encode(["error" => "Método no permitido"]);
+// ✅ POST → Actualizar progreso o resultado
+elseif ($method === 'POST') {
+    // Determinar acción por parámetro ?action=
+    $action = $_GET['action'] ?? null;
+
+    switch ($action) {
+        case 'actualizar_progreso':
+            $controller->actualizarProgreso();
+            break;
+
+        case 'actualizar_resultado':
+            $controller->actualizarResultado();
+            break;
+        case 'actualizar_progreso_subleccion':
+            $controller->actualizarProgresoSubleccion();
+            break;
+
+        default:
+            http_response_code(400);
+            echo json_encode(["status" => "ERROR", "message" => "Acción no reconocida. Usa ?action=actualizar_progreso o ?action=actualizar_resultado"]);
+    }
+}
+
+// 🚫 Otro método no permitido
+else {
+    http_response_code(405);
+    echo json_encode(["status" => "ERROR", "message" => "Método no permitido"]);
 }
