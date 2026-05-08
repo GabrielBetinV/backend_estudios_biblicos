@@ -1223,4 +1223,31 @@ BEGIN
     SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
 END$$
 
+-- ============================================
+-- 21. ELIMINAR GRUPO (con dependencias)
+-- ============================================
+
+DROP PROCEDURE IF EXISTS `sp_delete_grupo`$$
+CREATE PROCEDURE `sp_delete_grupo` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_grupo INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @msg = MESSAGE_TEXT;
+        SET v_salida = JSON_OBJECT('status','ERROR','message',CONCAT('Error al eliminar grupo: ',@msg),'data',NULL);
+        ROLLBACK;
+    END;
+
+    SET v_id_grupo = JSON_UNQUOTE(JSON_EXTRACT(v_data, '$.id_grupo'));
+
+    START TRANSACTION;
+    DELETE FROM grupo_usuarios WHERE id_grupo = v_id_grupo;
+    DELETE FROM grupo_lecciones WHERE id_grupo = v_id_grupo;
+    DELETE FROM grupos WHERE id_grupo = v_id_grupo;
+    COMMIT;
+
+    SET v_salida = JSON_OBJECT('status','OK','message','Grupo eliminado correctamente','data',JSON_OBJECT('id_grupo',v_id_grupo));
+END$$
+
 DELIMITER ;

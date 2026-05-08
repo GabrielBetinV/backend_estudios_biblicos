@@ -171,6 +171,14 @@ class AdminService {
         return $this->adminModel->getAvanceEstudiantes();
     }
 
+    public function deleteCurso($data) {
+        return $this->adminModel->deleteCurso($data);
+    }
+
+    public function deleteGrupo($data) {
+        return $this->adminModel->deleteGrupo($data);
+    }
+
     public function getSubleccionesAll() {
         return $this->adminModel->getSubleccionesAll();
     }

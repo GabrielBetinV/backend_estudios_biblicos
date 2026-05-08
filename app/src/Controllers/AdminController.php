@@ -124,6 +124,18 @@ class AdminController {
         echo json_encode($this->adminService->getGrupos());
     }
 
+    public function deleteCurso(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->deleteCurso($data));
+    }
+
+    public function deleteGrupo(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->deleteGrupo($data));
+    }
+
     public function createGrupo(): void {
         $this->validarAdmin();
         $data = json_decode(file_get_contents('php://input'), true);
