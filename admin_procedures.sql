@@ -966,4 +966,261 @@ BEGIN
     SET v_salida = JSON_OBJECT('status','OK','message','Estado del rol actualizado');
 END$$
 
+-- ============================================
+-- 16. CRUD DE PERMISOS
+-- ============================================
+
+-- 16.1 Insertar permiso
+DROP PROCEDURE IF EXISTS `sp_insert_permiso`$$
+CREATE PROCEDURE `sp_insert_permiso` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_nombre VARCHAR(100);
+    DECLARE v_modulo VARCHAR(50);
+    DECLARE v_descripcion VARCHAR(255);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @msg = MESSAGE_TEXT;
+        SET v_salida = JSON_OBJECT('status','ERROR','message',CONCAT('Error al crear permiso: ',@msg));
+    END;
+
+    SET v_nombre      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.nombre'));
+    SET v_modulo      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.modulo'));
+    SET v_descripcion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+
+    INSERT INTO permisos (nombre, modulo, descripcion) VALUES (v_nombre, v_modulo, v_descripcion);
+    SET v_salida = JSON_OBJECT('status','OK','message','Permiso creado','data',JSON_OBJECT('id_permiso',LAST_INSERT_ID()));
+END$$
+
+-- 16.2 Actualizar permiso
+DROP PROCEDURE IF EXISTS `sp_update_permiso`$$
+CREATE PROCEDURE `sp_update_permiso` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_permiso INT;
+    DECLARE v_nombre VARCHAR(100);
+    DECLARE v_modulo VARCHAR(50);
+    DECLARE v_descripcion VARCHAR(255);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @msg = MESSAGE_TEXT;
+        SET v_salida = JSON_OBJECT('status','ERROR','message',CONCAT('Error al actualizar permiso: ',@msg));
+    END;
+
+    SET v_id_permiso  = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_permiso'));
+    SET v_nombre      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.nombre'));
+    SET v_modulo      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.modulo'));
+    SET v_descripcion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+
+    UPDATE permisos SET nombre = v_nombre, modulo = v_modulo, descripcion = v_descripcion WHERE id_permiso = v_id_permiso;
+    SET v_salida = JSON_OBJECT('status','OK','message','Permiso actualizado');
+END$$
+
+-- 16.3 Eliminar permiso
+DROP PROCEDURE IF EXISTS `sp_delete_permiso`$$
+CREATE PROCEDURE `sp_delete_permiso` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_permiso INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @msg = MESSAGE_TEXT;
+        SET v_salida = JSON_OBJECT('status','ERROR','message',CONCAT('Error al eliminar permiso: ',@msg));
+    END;
+
+    SET v_id_permiso = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_permiso'));
+
+    DELETE FROM rol_permisos WHERE id_permiso = v_id_permiso;
+    DELETE FROM permisos WHERE id_permiso = v_id_permiso;
+    SET v_salida = JSON_OBJECT('status','OK','message','Permiso eliminado');
+END$$
+
+-- ============================================
+-- 17. CRUD DE TIPOS DE EVIDENCIA
+-- ============================================
+
+DROP PROCEDURE IF EXISTS `sp_get_tipos_evidencia`$$
+CREATE PROCEDURE `sp_get_tipos_evidencia` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(JSON_OBJECT('id_tipo', id_tipo, 'tipo_nombre', tipo_nombre))
+    INTO v_resultado FROM tipos_evidencia;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_insert_tipo_evidencia`$$
+CREATE PROCEDURE `sp_insert_tipo_evidencia` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_nombre VARCHAR(50);
+    SET v_nombre = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.tipo_nombre'));
+    INSERT INTO tipos_evidencia (tipo_nombre) VALUES (v_nombre);
+    SET v_salida = JSON_OBJECT('status','OK','message','Tipo de evidencia creado','data',JSON_OBJECT('id_tipo',LAST_INSERT_ID()));
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_update_tipo_evidencia`$$
+CREATE PROCEDURE `sp_update_tipo_evidencia` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_tipo INT;
+    DECLARE v_nombre VARCHAR(50);
+    SET v_id_tipo = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_tipo'));
+    SET v_nombre  = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.tipo_nombre'));
+    UPDATE tipos_evidencia SET tipo_nombre = v_nombre WHERE id_tipo = v_id_tipo;
+    SET v_salida = JSON_OBJECT('status','OK','message','Tipo de evidencia actualizado');
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_delete_tipo_evidencia`$$
+CREATE PROCEDURE `sp_delete_tipo_evidencia` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_tipo INT;
+    DECLARE v_total INT;
+    SET v_id_tipo = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_tipo'));
+    SELECT COUNT(*) INTO v_total FROM evidencias WHERE id_tipo = v_id_tipo;
+    IF v_total > 0 THEN
+        SET v_salida = JSON_OBJECT('status','ERROR','message','No se puede eliminar: hay evidencias usando este tipo.');
+    ELSE
+        DELETE FROM tipos_evidencia WHERE id_tipo = v_id_tipo;
+        SET v_salida = JSON_OBJECT('status','OK','message','Tipo de evidencia eliminado');
+    END IF;
+END$$
+
+-- ============================================
+-- 18. CRUD DE EVIDENCIAS
+-- ============================================
+
+DROP PROCEDURE IF EXISTS `sp_get_evidencias_admin`$$
+CREATE PROCEDURE `sp_get_evidencias_admin` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_evidencia', e.id_evidencia,
+            'titulo', e.titulo,
+            'descripcion', e.descripcion,
+            'fecha', e.fecha,
+            'id_tipo', e.id_tipo,
+            'tipo_nombre', te.tipo_nombre,
+            'id_leccion', e.id_leccion,
+            'id_subleccion', e.id_subleccion,
+            'leccion_titulo', l.titulo,
+            'subleccion_titulo', s.titulo
+        )
+    ) INTO v_resultado
+    FROM evidencias e
+    LEFT JOIN tipos_evidencia te ON e.id_tipo = te.id_tipo
+    LEFT JOIN lecciones l ON e.id_leccion = l.id_leccion
+    LEFT JOIN sublecciones s ON e.id_subleccion = s.id_subleccion;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_get_evidencia`$$
+CREATE PROCEDURE `sp_get_evidencia` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id INT;
+    DECLARE v_resultado JSON;
+    SET v_id = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_evidencia'));
+    SELECT JSON_OBJECT(
+        'id_evidencia', e.id_evidencia,
+        'titulo', e.titulo,
+        'descripcion', e.descripcion,
+        'id_tipo', e.id_tipo,
+        'id_leccion', e.id_leccion,
+        'id_subleccion', e.id_subleccion
+    ) INTO v_resultado
+    FROM evidencias e WHERE e.id_evidencia = v_id;
+    SET v_salida = JSON_OBJECT('status','OK','data', v_resultado);
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_update_evidencia`$$
+CREATE PROCEDURE `sp_update_evidencia` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_evidencia INT;
+    DECLARE v_titulo VARCHAR(255);
+    DECLARE v_descripcion TEXT;
+    DECLARE v_id_tipo INT;
+    DECLARE v_id_leccion INT;
+    DECLARE v_id_subleccion INT;
+
+    SET v_id_evidencia  = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_evidencia'));
+    SET v_titulo        = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.titulo'));
+    SET v_descripcion   = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+    SET v_id_tipo       = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_tipo'));
+    SET v_id_leccion    = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_leccion'));
+    SET v_id_subleccion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_subleccion'));
+
+    UPDATE evidencias
+    SET titulo = v_titulo, descripcion = v_descripcion, id_tipo = v_id_tipo,
+        id_leccion = v_id_leccion, id_subleccion = v_id_subleccion
+    WHERE id_evidencia = v_id_evidencia;
+    SET v_salida = JSON_OBJECT('status','OK','message','Evidencia actualizada');
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_delete_evidencia`$$
+CREATE PROCEDURE `sp_delete_evidencia` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id INT;
+    SET v_id = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_evidencia'));
+    DELETE FROM evidencias WHERE id_evidencia = v_id;
+    SET v_salida = JSON_OBJECT('status','OK','message','Evidencia eliminada');
+END$$
+
+-- ============================================
+-- 19. AVANCE DE ESTUDIANTES
+-- ============================================
+
+DROP PROCEDURE IF EXISTS `sp_get_avance_estudiantes`$$
+CREATE PROCEDURE `sp_get_avance_estudiantes` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_usuario', u.id_usuario,
+            'nombre', CONCAT(u.nombre, ' ', u.apellido),
+            'correo', u.correo,
+            'cursos', (
+                SELECT JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                        'id_curso', c.id_curso,
+                        'titulo', c.titulo,
+                        'progreso', COALESCE(pc.progreso, 0),
+                        'fecha_inscripcion', i.fecha_inscripcion
+                    )
+                )
+                FROM inscripciones i
+                INNER JOIN cursos c ON i.id_curso = c.id_curso
+                LEFT JOIN progreso_curso pc ON pc.id_usuario = u.id_usuario AND pc.id_curso = c.id_curso
+                WHERE i.id_usuario = u.id_usuario
+            )
+        )
+    ) INTO v_resultado
+    FROM usuarios u
+    WHERE u.id_rol = 2
+    ORDER BY u.nombre;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+-- ============================================
+-- 20. SUBLECCIONES PARA ADMIN
+-- ============================================
+
+DROP PROCEDURE IF EXISTS `sp_get_sublecciones_admin`$$
+CREATE PROCEDURE `sp_get_sublecciones_admin` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_subleccion', s.id_subleccion,
+            'titulo', s.titulo,
+            'id_leccion', s.id_leccion,
+            'leccion_titulo', l.titulo,
+            'modulo_titulo', m.titulo,
+            'curso_titulo', c.titulo
+        )
+    ) INTO v_resultado
+    FROM sublecciones s
+    JOIN lecciones l ON s.id_leccion = l.id_leccion
+    JOIN modulos m ON l.id_modulo = m.id_modulo
+    JOIN cursos c ON m.id_curso = c.id_curso;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
 DELIMITER ;

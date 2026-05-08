@@ -83,6 +83,7 @@ switch ($action) {
         if ($method === 'PUT') $contentController->updateLeccion();
         break;
     case 'sublecciones':
+        if ($method === 'GET') $adminController->getSubleccionesAll();
         if ($method === 'POST') $contentController->createSubleccion();
         if ($method === 'PUT') $contentController->updateSubleccion();
         break;
@@ -109,9 +110,29 @@ switch ($action) {
         break;
     case 'permisos':
         if ($method === 'GET') $adminController->getPermisos();
+        if ($method === 'POST') $adminController->insertPermiso();
+        if ($method === 'PUT') $adminController->updatePermiso();
+        if ($method === 'DELETE') $adminController->deletePermiso();
         break;
     case 'rol_permisos':
         if ($method === 'GET') $adminController->getRolPermisos();
+        break;
+    case 'tipos_evidencia':
+        if ($method === 'GET') $adminController->getTiposEvidencia();
+        if ($method === 'POST') $adminController->insertTipoEvidencia();
+        if ($method === 'PUT') $adminController->updateTipoEvidencia();
+        if ($method === 'DELETE') $adminController->deleteTipoEvidencia();
+        break;
+    case 'evidencias_admin':
+        if ($method === 'GET') $adminController->getEvidenciasAdmin();
+        if ($method === 'PUT') $adminController->updateEvidencia();
+        if ($method === 'DELETE') $adminController->deleteEvidencia();
+        break;
+    case 'evidencia':
+        if ($method === 'GET') $adminController->getEvidencia();
+        break;
+    case 'avance_estudiantes':
+        if ($method === 'GET') $adminController->getAvanceEstudiantes();
         break;
     default:
         http_response_code(404);

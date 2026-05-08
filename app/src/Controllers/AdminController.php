@@ -227,4 +227,78 @@ class AdminController {
         $data = json_decode(file_get_contents('php://input'), true);
         echo json_encode($this->adminService->removeLeccionGrupo($data));
     }
+
+    public function insertPermiso(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->insertPermiso($data));
+    }
+
+    public function updatePermiso(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->updatePermiso($data));
+    }
+
+    public function deletePermiso(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->deletePermiso($data));
+    }
+
+    public function getTiposEvidencia(): void {
+        $this->validarAdmin();
+        echo json_encode($this->adminService->getTiposEvidencia());
+    }
+
+    public function insertTipoEvidencia(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->insertTipoEvidencia($data));
+    }
+
+    public function updateTipoEvidencia(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->updateTipoEvidencia($data));
+    }
+
+    public function deleteTipoEvidencia(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->deleteTipoEvidencia($data));
+    }
+
+    public function getEvidenciasAdmin(): void {
+        $this->validarAdmin();
+        echo json_encode($this->adminService->getEvidenciasAdmin());
+    }
+
+    public function getEvidencia(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->getEvidencia($data));
+    }
+
+    public function updateEvidencia(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->updateEvidencia($data));
+    }
+
+    public function deleteEvidencia(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->deleteEvidencia($data));
+    }
+
+    public function getAvanceEstudiantes(): void {
+        $this->validarAdmin();
+        echo json_encode($this->adminService->getAvanceEstudiantes());
+    }
+
+    public function getSubleccionesAll(): void {
+        $this->validarAdmin();
+        echo json_encode($this->adminService->getSubleccionesAll());
+    }
 }

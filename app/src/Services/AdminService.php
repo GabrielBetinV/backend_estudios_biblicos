@@ -122,4 +122,56 @@ class AdminService {
     public function removeLeccionGrupo($data) {
         return $this->adminModel->removeLeccionGrupo($data);
     }
+
+    public function insertPermiso($data) {
+        return $this->adminModel->insertPermiso($data);
+    }
+
+    public function updatePermiso($data) {
+        return $this->adminModel->updatePermiso($data);
+    }
+
+    public function deletePermiso($data) {
+        return $this->adminModel->deletePermiso($data);
+    }
+
+    public function getTiposEvidencia() {
+        return $this->adminModel->getTiposEvidencia();
+    }
+
+    public function insertTipoEvidencia($data) {
+        return $this->adminModel->insertTipoEvidencia($data);
+    }
+
+    public function updateTipoEvidencia($data) {
+        return $this->adminModel->updateTipoEvidencia($data);
+    }
+
+    public function deleteTipoEvidencia($data) {
+        return $this->adminModel->deleteTipoEvidencia($data);
+    }
+
+    public function getEvidenciasAdmin() {
+        return $this->adminModel->getEvidenciasAdmin();
+    }
+
+    public function getEvidencia($data) {
+        return $this->adminModel->getEvidencia($data);
+    }
+
+    public function updateEvidencia($data) {
+        return $this->adminModel->updateEvidencia($data);
+    }
+
+    public function deleteEvidencia($data) {
+        return $this->adminModel->deleteEvidencia($data);
+    }
+
+    public function getAvanceEstudiantes() {
+        return $this->adminModel->getAvanceEstudiantes();
+    }
+
+    public function getSubleccionesAll() {
+        return $this->adminModel->getSubleccionesAll();
+    }
 }

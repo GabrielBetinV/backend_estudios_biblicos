@@ -132,4 +132,56 @@ class AdminModel {
     public function removeLeccionGrupo($data): ApiResponseDTO {
         return Database::getInstance()->executeProcedure("CALL sp_remove_leccion_grupo(:v_data, @v_salida)", $data);
     }
+
+    public function insertPermiso($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_insert_permiso(:v_data, @v_salida)", $data);
+    }
+
+    public function updatePermiso($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_update_permiso(:v_data, @v_salida)", $data);
+    }
+
+    public function deletePermiso($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_delete_permiso(:v_data, @v_salida)", $data);
+    }
+
+    public function getTiposEvidencia(): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_tipos_evidencia(@v_salida)", []);
+    }
+
+    public function insertTipoEvidencia($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_insert_tipo_evidencia(:v_data, @v_salida)", $data);
+    }
+
+    public function updateTipoEvidencia($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_update_tipo_evidencia(:v_data, @v_salida)", $data);
+    }
+
+    public function deleteTipoEvidencia($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_delete_tipo_evidencia(:v_data, @v_salida)", $data);
+    }
+
+    public function getEvidenciasAdmin(): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_evidencias_admin(@v_salida)", []);
+    }
+
+    public function getEvidencia($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_evidencia(:v_data, @v_salida)", $data);
+    }
+
+    public function updateEvidencia($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_update_evidencia(:v_data, @v_salida)", $data);
+    }
+
+    public function deleteEvidencia($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_delete_evidencia(:v_data, @v_salida)", $data);
+    }
+
+    public function getAvanceEstudiantes(): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_avance_estudiantes(@v_salida)", []);
+    }
+
+    public function getSubleccionesAll(): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_sublecciones_admin(@v_salida)", []);
+    }
 }
