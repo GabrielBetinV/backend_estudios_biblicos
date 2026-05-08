@@ -87,6 +87,38 @@ class AdminService {
         return $this->adminModel->getLeccionesFull();
     }
 
+    public function getRoles() {
+        return $this->adminModel->getRoles();
+    }
+
+    public function createRol($data) {
+        return $this->adminModel->createRol($data);
+    }
+
+    public function updateRoleDef($data) {
+        return $this->adminModel->updateRoleDef($data);
+    }
+
+    public function deleteRol($data) {
+        return $this->adminModel->deleteRol($data);
+    }
+
+    public function getPermisos() {
+        return $this->adminModel->getPermisos();
+    }
+
+    public function updateRolEstado($data) {
+        return $this->adminModel->updateRolEstado($data);
+    }
+
+    public function getPermisosByRol($id_rol) {
+        return $this->adminModel->getPermisosByRol($id_rol);
+    }
+
+    public function getRolPermisos($id_rol) {
+        return $this->adminModel->getRolPermisos($id_rol);
+    }
+
     public function removeLeccionGrupo($data) {
         return $this->adminModel->removeLeccionGrupo($data);
     }

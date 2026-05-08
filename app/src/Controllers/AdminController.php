@@ -27,8 +27,30 @@ class AdminController {
             $decoded = JwtHelper::verificarToken($matches[1]);
             $userData = $decoded['data'];
 
-            // VALIDAR ROL ADMIN (asumiendo id_rol = 1 es Admin)
-            if ($userData['id_rol'] != 1) {
+            // Validar permisos de administración
+            // Si las tablas/SP de permisos existen, verifica por permisos.
+            // Si no (migración pendiente), fallback al id_rol == 1
+            $tieneAccesoAdmin = false;
+            try {
+                $permisosResponse = $this->adminService->getPermisosByRol($userData['id_rol']);
+                if ($permisosResponse !== null && $permisosResponse->status === 'OK' && !empty($permisosResponse->data)) {
+                    foreach ($permisosResponse->data as $permiso) {
+                        if (is_string($permiso) && strpos($permiso, 'admin.') === 0) {
+                            $tieneAccesoAdmin = true;
+                            break;
+                        }
+                    }
+                }
+            } catch (Exception $e) {
+                // Tablas de permisos no existen aún
+                $tieneAccesoAdmin = ($userData['id_rol'] == 1);
+            }
+
+            if (!$tieneAccesoAdmin && $userData['id_rol'] == 1) {
+                $tieneAccesoAdmin = true;
+            }
+
+            if (!$tieneAccesoAdmin) {
                 http_response_code(403);
                 echo json_encode(["status" => "ERROR", "message" => "Acceso denegado. Se requieren permisos de administrador."]);
                 exit;
@@ -158,6 +180,46 @@ class AdminController {
     public function getLeccionesFull(): void {
         $this->validarAdmin();
         echo json_encode($this->adminService->getLeccionesFull());
+    }
+
+    public function getRoles(): void {
+        $this->validarAdmin();
+        echo json_encode($this->adminService->getRoles());
+    }
+
+    public function createRol(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->createRol($data));
+    }
+
+    public function updateRoleDef(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->updateRoleDef($data));
+    }
+
+    public function deleteRol(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->deleteRol($data));
+    }
+
+    public function updateRolEstado(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->updateRolEstado($data));
+    }
+
+    public function getPermisos(): void {
+        $this->validarAdmin();
+        echo json_encode($this->adminService->getPermisos());
+    }
+
+    public function getRolPermisos(): void {
+        $this->validarAdmin();
+        $id_rol = $_GET['id_rol'] ?? null;
+        echo json_encode($this->adminService->getRolPermisos($id_rol));
     }
 
     public function removeLeccionGrupo(): void {

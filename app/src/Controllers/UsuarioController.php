@@ -230,8 +230,19 @@ public function cambiarContrasenaConToken(): void {
             }
 
             unset($usuario['contrasena']);
-            
-      
+
+            // Obtener permisos del rol (con fallback si las tablas de permisos no existen)
+            $permisos = [];
+            try {
+                $permisosResponse = $this->usuarioService->getPermisosByRol($usuario['id_rol']);
+                if ($permisosResponse !== null && $permisosResponse->status === 'OK' && !empty($permisosResponse->data)) {
+                    $permisos = $permisosResponse->data;
+                }
+            } catch (Exception $e) {
+                // Tablas de permisos no existen aún (migración pendiente)
+                $permisos = [];
+            }
+
             // ✅ Generar JWT
             $token = JwtHelper::generarToken([
                 "id_usuario" => $usuario['id_usuario'],
@@ -243,7 +254,11 @@ public function cambiarContrasenaConToken(): void {
             echo json_encode([
                 "status" => "OK",
                 "message" => "Login exitoso.",
-                "data" => $token
+                "data" => [
+                    "token" => $token,
+                    "user" => $usuario,
+                    "permisos" => $permisos
+                ]
             ]);
         } catch (Exception $e) {
             http_response_code(500);

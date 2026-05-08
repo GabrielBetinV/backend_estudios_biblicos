@@ -1,4 +1,7 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 require __DIR__ . '/app/vendor/autoload.php';
 
 use App\Controllers\AdminController;
@@ -94,6 +97,21 @@ switch ($action) {
         break;
     case 'categorias':
         $contentController->manageCategoria();
+        break;
+    case 'roles':
+        if ($method === 'GET') $adminController->getRoles();
+        if ($method === 'POST') $adminController->createRol();
+        if ($method === 'PUT') $adminController->updateRoleDef();
+        if ($method === 'DELETE') $adminController->deleteRol();
+        break;
+    case 'rol_estado':
+        if ($method === 'POST') $adminController->updateRolEstado();
+        break;
+    case 'permisos':
+        if ($method === 'GET') $adminController->getPermisos();
+        break;
+    case 'rol_permisos':
+        if ($method === 'GET') $adminController->getRolPermisos();
         break;
     default:
         http_response_code(404);

@@ -93,4 +93,12 @@ class UsuarioModel
             ]
         );
     }
+
+    public function getPermisosByRol($id_rol): ApiResponseDTO
+    {
+        return Database::getInstance()->executeProcedure(
+            "CALL sp_get_permisos_by_rol(:v_data, @v_salida)",
+            ['id_rol' => $id_rol]
+        );
+    }
 }

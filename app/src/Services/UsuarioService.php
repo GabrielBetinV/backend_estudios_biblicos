@@ -131,6 +131,10 @@ public function generarNuevaContrasena(string $correo): ApiResponseDTO {
     return new ApiResponseDTO('OK', 'Contraseña generada y enviada al correo.', null);
 }
 
+    public function getPermisosByRol($id_rol) {
+        return $this->usuarioModel->getPermisosByRol($id_rol);
+    }
+
 private function enviarCorreoContrasena(string $correo, string $nombre, string $contrasena): void {
     $asunto = "Recuperación de contraseña";
     $mensaje = "

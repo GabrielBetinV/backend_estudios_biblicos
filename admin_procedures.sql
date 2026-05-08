@@ -763,4 +763,207 @@ BEGIN
     SET v_salida = JSON_OBJECT('status','OK','message','Lección removida del grupo');
 END$$
 
+-- ============================================
+-- 15. GESTIÓN DE ROLES Y PERMISOS
+-- ============================================
+
+-- 15.1 Obtener todos los roles
+DROP PROCEDURE IF EXISTS `sp_get_roles_admin`$$
+CREATE PROCEDURE `sp_get_roles_admin` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_rol', r.id_rol,
+            'nombre', r.nombre,
+            'descripcion', r.descripcion,
+            'id_estado', r.id_estado,
+            'permisos', (
+                SELECT JSON_ARRAYAGG(
+                    JSON_OBJECT(
+                        'id_permiso', p.id_permiso,
+                        'nombre', p.nombre,
+                        'modulo', p.modulo,
+                        'descripcion', p.descripcion
+                    )
+                )
+                FROM rol_permisos rp
+                INNER JOIN permisos p ON rp.id_permiso = p.id_permiso
+                WHERE rp.id_rol = r.id_rol
+            )
+        )
+    ) INTO v_resultado
+    FROM roles r;
+    SET v_salida = JSON_OBJECT('status','OK','message','Roles obtenidos correctamente','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+-- 15.2 Obtener todos los permisos disponibles
+DROP PROCEDURE IF EXISTS `sp_get_permisos`$$
+CREATE PROCEDURE `sp_get_permisos` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_permiso', id_permiso,
+            'nombre', nombre,
+            'modulo', modulo,
+            'descripcion', descripcion
+        )
+    ) INTO v_resultado
+    FROM permisos;
+    SET v_salida = JSON_OBJECT('status','OK','message','Permisos obtenidos correctamente','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+-- 15.3 Obtener permisos de un rol específico
+DROP PROCEDURE IF EXISTS `sp_get_rol_permisos`$$
+CREATE PROCEDURE `sp_get_rol_permisos` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_rol INT;
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SET v_id_rol = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_rol'));
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT('id_permiso', p.id_permiso, 'nombre', p.nombre)
+    ) INTO v_resultado
+    FROM rol_permisos rp
+    INNER JOIN permisos p ON rp.id_permiso = p.id_permiso
+    WHERE rp.id_rol = v_id_rol;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+-- 15.4 Obtener permisos de un usuario por su id_rol
+DROP PROCEDURE IF EXISTS `sp_get_permisos_by_rol`$$
+CREATE PROCEDURE `sp_get_permisos_by_rol` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_rol INT;
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SET v_id_rol = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_rol'));
+    SELECT JSON_ARRAYAGG(p.nombre) INTO v_resultado
+    FROM rol_permisos rp
+    INNER JOIN permisos p ON rp.id_permiso = p.id_permiso
+    WHERE rp.id_rol = v_id_rol;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+-- 15.5 Crear rol
+DROP PROCEDURE IF EXISTS `sp_insert_rol`$$
+CREATE PROCEDURE `sp_insert_rol` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_nombre VARCHAR(50);
+    DECLARE v_descripcion TEXT;
+    DECLARE v_nuevo_id INT;
+    DECLARE v_permisos JSON;
+    DECLARE v_i INT DEFAULT 0;
+    DECLARE v_id_permiso INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @msg = MESSAGE_TEXT;
+        SET v_salida = JSON_OBJECT('status','ERROR','message',CONCAT('Error al crear rol: ',@msg),'data',NULL);
+        ROLLBACK;
+    END;
+
+    SET v_nombre      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.nombre'));
+    SET v_descripcion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+    SET v_permisos    = JSON_EXTRACT(v_data,'$.permisos');
+
+    START TRANSACTION;
+    INSERT INTO roles (nombre, descripcion, id_estado) VALUES (v_nombre, v_descripcion, 1);
+    SET v_nuevo_id = LAST_INSERT_ID();
+
+    -- Asignar permisos si vienen en el JSON
+    IF v_permisos IS NOT NULL AND JSON_LENGTH(v_permisos) > 0 THEN
+        SET v_i = 0;
+        WHILE v_i < JSON_LENGTH(v_permisos) DO
+            SET v_id_permiso = JSON_UNQUOTE(JSON_EXTRACT(v_permisos, CONCAT('$[', v_i, ']')));
+            INSERT INTO rol_permisos (id_rol, id_permiso) VALUES (v_nuevo_id, v_id_permiso);
+            SET v_i = v_i + 1;
+        END WHILE;
+    END IF;
+    COMMIT;
+
+    SET v_salida = JSON_OBJECT('status','OK','message','Rol creado correctamente','data',JSON_OBJECT('id_rol',v_nuevo_id));
+END$$
+
+-- 15.6 Actualizar rol
+DROP PROCEDURE IF EXISTS `sp_update_rol`$$
+CREATE PROCEDURE `sp_update_rol` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_rol INT;
+    DECLARE v_nombre VARCHAR(50);
+    DECLARE v_descripcion TEXT;
+    DECLARE v_id_estado INT;
+    DECLARE v_permisos JSON;
+    DECLARE v_i INT DEFAULT 0;
+    DECLARE v_id_permiso INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @msg = MESSAGE_TEXT;
+        SET v_salida = JSON_OBJECT('status','ERROR','message',CONCAT('Error al actualizar rol: ',@msg),'data',NULL);
+        ROLLBACK;
+    END;
+
+    SET v_id_rol      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_rol'));
+    SET v_nombre      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.nombre'));
+    SET v_descripcion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+    SET v_id_estado   = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_estado'));
+    SET v_permisos    = JSON_EXTRACT(v_data,'$.permisos');
+
+    START TRANSACTION;
+    UPDATE roles SET nombre = v_nombre, descripcion = v_descripcion
+        WHERE id_rol = v_id_rol;
+
+    -- Actualizar estado si se envió
+    IF v_id_estado IS NOT NULL AND v_id_estado > 0 THEN
+        UPDATE roles SET id_estado = v_id_estado WHERE id_rol = v_id_rol;
+    END IF;
+
+    -- Re-asignar permisos: borrar existentes
+    DELETE FROM rol_permisos WHERE id_rol = v_id_rol;
+
+    -- Insertar nuevos permisos si vienen en el JSON
+    IF v_permisos IS NOT NULL AND JSON_LENGTH(v_permisos) > 0 THEN
+        SET v_i = 0;
+        WHILE v_i < JSON_LENGTH(v_permisos) DO
+            SET v_id_permiso = JSON_UNQUOTE(JSON_EXTRACT(v_permisos, CONCAT('$[', v_i, ']')));
+            INSERT INTO rol_permisos (id_rol, id_permiso) VALUES (v_id_rol, v_id_permiso);
+            SET v_i = v_i + 1;
+        END WHILE;
+    END IF;
+    COMMIT;
+
+    SET v_salida = JSON_OBJECT('status','OK','message','Rol actualizado correctamente');
+END$$
+
+-- 15.7 Eliminar rol (solo si no tiene usuarios asignados)
+DROP PROCEDURE IF EXISTS `sp_delete_rol`$$
+CREATE PROCEDURE `sp_delete_rol` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_rol INT;
+    DECLARE v_total INT;
+
+    SET v_id_rol = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_rol'));
+
+    SELECT COUNT(*) INTO v_total FROM usuarios WHERE id_rol = v_id_rol;
+
+    IF v_total > 0 THEN
+        SET v_salida = JSON_OBJECT('status','ERROR','message','No se puede eliminar el rol porque tiene usuarios asignados. Cambia el rol de los usuarios primero.');
+    ELSE
+        DELETE FROM roles WHERE id_rol = v_id_rol;
+        SET v_salida = JSON_OBJECT('status','OK','message','Rol eliminado correctamente');
+    END IF;
+END$$
+
+-- 15.8 Cambiar estado del rol
+DROP PROCEDURE IF EXISTS `sp_update_rol_estado`$$
+CREATE PROCEDURE `sp_update_rol_estado` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_rol INT;
+    DECLARE v_id_estado INT;
+    SET v_id_rol = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_rol'));
+    SET v_id_estado = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_estado'));
+    UPDATE roles SET id_estado = v_id_estado WHERE id_rol = v_id_rol;
+    SET v_salida = JSON_OBJECT('status','OK','message','Estado del rol actualizado');
+END$$
+
 DELIMITER ;

@@ -97,6 +97,38 @@ class AdminModel {
         return Database::getInstance()->executeProcedure("CALL sp_get_lecciones_full(@v_salida)", []);
     }
 
+    public function getRoles(): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_roles_admin(@v_salida)", []);
+    }
+
+    public function createRol($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_insert_rol(:v_data, @v_salida)", $data);
+    }
+
+    public function updateRoleDef($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_update_rol(:v_data, @v_salida)", $data);
+    }
+
+    public function deleteRol($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_delete_rol(:v_data, @v_salida)", $data);
+    }
+
+    public function getPermisos(): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_permisos(@v_salida)", []);
+    }
+
+    public function getPermisosByRol($id_rol): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_permisos_by_rol(:v_data, @v_salida)", ['id_rol' => $id_rol]);
+    }
+
+    public function updateRolEstado($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_update_rol_estado(:v_data, @v_salida)", $data);
+    }
+
+    public function getRolPermisos($id_rol): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_rol_permisos(:v_data, @v_salida)", ['id_rol' => $id_rol]);
+    }
+
     public function removeLeccionGrupo($data): ApiResponseDTO {
         return Database::getInstance()->executeProcedure("CALL sp_remove_leccion_grupo(:v_data, @v_salida)", $data);
     }
