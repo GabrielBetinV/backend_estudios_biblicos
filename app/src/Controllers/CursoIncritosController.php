@@ -66,8 +66,8 @@ private function validarToken(): array {
     } catch (\Exception $e) {
         http_response_code(401);
         echo json_encode([
-            "status" => "ERROR",
-            "message" => "Token inválido o corrupto: " . $e->getMessage(),
+            "status" => "INFO",
+            "message" => "" . $e->getMessage(),
             "data" => null
         ]);
         exit;

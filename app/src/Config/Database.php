@@ -76,7 +76,12 @@ class Database
 
             // Preparar y ejecutar la consulta
             $stmt = $this->conn->prepare($query);
-            $stmt->bindParam(':v_data', $v_data, PDO::PARAM_STR);
+            
+            // Solo vincular si el parámetro :v_data existe en la consulta
+            if (strpos($query, ':v_data') !== false) {
+                $stmt->bindParam(':v_data', $v_data, PDO::PARAM_STR);
+            }
+            
             $stmt->execute();
 
             // Obtener el valor de la salida
@@ -95,8 +100,11 @@ class Database
             }
 
             // Retornar la respuesta estructurada
-            if (isset($decodedResult['status']) && isset($decodedResult['message'])) {
-                return new ApiResponseDTO($decodedResult['status'], $decodedResult['message'], $decodedResult['data']);
+            if (isset($decodedResult['status'])) {
+                $status = $decodedResult['status'];
+                $message = $decodedResult['message'] ?? 'Operación finalizada';
+                $data = $decodedResult['data'] ?? null;
+                return new ApiResponseDTO($status, $message, $data);
             } else {
                 return new ApiResponseDTO('ERROR', "Estructura inesperada en la respuesta del procedimiento.", null);
             }

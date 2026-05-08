@@ -226,7 +226,8 @@ public function cambiarContrasenaConToken(): void {
             $token = JwtHelper::generarToken([
                 "id_usuario" => $usuario['id_usuario'],
                 "correo" => $usuario['correo'],
-                "nombre" => $usuario['nombre']
+                "nombre" => $usuario['nombre'],
+                "id_rol" => $usuario['id_rol']
             ]);
 
             echo json_encode([

@@ -8,13 +8,27 @@ use App\DTO\ApiResponseDTO;
 class ForoModel {
 
     // 🔹 Consultar preguntas por módulo
-    public function getPreguntasByCurso($id_curso): ApiResponseDTO {
+    public function getPreguntasByCurso($id_curso,$id_usuario,$id_leccion,$id_subleccion ): ApiResponseDTO {
         
         return Database::getInstance()->executeProcedure(
             "CALL sp_get_foro_pregunta_por_curso(:v_data, @v_salida)",
-            ['id_curso' => $id_curso]
+             [
+      
+         
+                  'id_curso'   => $id_curso,
+                  'id_usuario' => $id_usuario,
+                  'id_leccion'  => $id_leccion ,
+                  'id_subleccion' => $id_subleccion
+         
+         ]
         );
     }
+
+
+
+
+
+
 
     // 🔹 Insertar nueva pregunta
     public function insertPregunta(array $data): ApiResponseDTO {

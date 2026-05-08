@@ -53,7 +53,7 @@ class ForoController {
         }
 
         try {
-            $response = $this->foroService->getPreguntasByCurso($data['id_curso']);
+            $response = $this->foroService->getPreguntasByCurso($data['id_curso'],$usuario['id_usuario'],$data['id_leccion'],$data['id_subleccion']);
             echo json_encode($response);
         } catch (Exception $e) {
             http_response_code(500);
