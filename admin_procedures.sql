@@ -1,5 +1,45 @@
 DELIMITER $$
 
+-- 0. Crear Curso
+DROP PROCEDURE IF EXISTS `sp_insert_curso`$$
+CREATE PROCEDURE `sp_insert_curso` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_titulo       VARCHAR(255);
+    DECLARE v_descripcion  TEXT;
+    DECLARE v_precio       DECIMAL(10,2);
+    DECLARE v_portada      TEXT;
+    DECLARE v_id_categoria INT;
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        GET DIAGNOSTICS CONDITION 1 @msg = MESSAGE_TEXT;
+        SET v_salida = JSON_OBJECT('status','ERROR','message',CONCAT('Error al crear curso: ',@msg),'data',NULL);
+    END;
+
+    SET v_titulo       = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.titulo'));
+    SET v_descripcion  = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+    SET v_precio       = IFNULL(JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.precio')), 0);
+    SET v_portada      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.portada'));
+    SET v_id_categoria = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_categoria'));
+
+    INSERT INTO cursos (titulo, descripcion, precio, portada, id_categoria, id_estado)
+    VALUES (v_titulo, v_descripcion, v_precio, v_portada, v_id_categoria, 2); -- 2 = Borrador
+
+    SET v_salida = JSON_OBJECT('status','OK','message','Curso creado correctamente','data',JSON_OBJECT('id_curso',LAST_INSERT_ID()));
+END$$
+
+-- 0b. Cambiar estado del curso
+DROP PROCEDURE IF EXISTS `sp_update_estado_curso`$$
+CREATE PROCEDURE `sp_update_estado_curso` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_curso  INT;
+    DECLARE v_id_estado INT;
+    SET v_id_curso  = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_curso'));
+    SET v_id_estado = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_estado'));
+    UPDATE cursos SET id_estado = v_id_estado WHERE id_curso = v_id_curso;
+    SET v_salida = JSON_OBJECT('status','OK','message','Estado del curso actualizado');
+END$$
+
 -- 1. Actualizar Curso
 DROP PROCEDURE IF EXISTS `sp_update_curso`$$
 CREATE PROCEDURE `sp_update_curso` (IN `v_data` JSON, OUT `v_salida` JSON)
@@ -521,6 +561,188 @@ BEGIN
     VALUES (v_id_quiz, v_pregunta, v_opcion_a, v_opcion_b, v_opcion_c, v_opcion_d, v_correcta);
 
     SET v_salida = JSON_OBJECT('status','OK','message','Pregunta de quiz agregada');
+END$$
+
+-- 11. Gestionar Grupos
+DROP PROCEDURE IF EXISTS `sp_get_grupos_admin`$$
+CREATE PROCEDURE `sp_get_grupos_admin` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_grupo', id_grupo,
+            'nombre', nombre,
+            'descripcion', descripcion,
+            'fecha_creacion', fecha_creacion,
+            'id_estado', id_estado
+        )
+    ) INTO v_resultado FROM grupos;
+    SET v_salida = JSON_OBJECT('status','OK','message','Grupos obtenidos','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_insert_grupo`$$
+CREATE PROCEDURE `sp_insert_grupo` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_nombre VARCHAR(100);
+    DECLARE v_descripcion TEXT;
+    SET v_nombre = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.nombre'));
+    SET v_descripcion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+    INSERT INTO grupos (nombre, descripcion) VALUES (v_nombre, v_descripcion);
+    SET v_salida = JSON_OBJECT('status','OK','message','Grupo creado','data', JSON_OBJECT('id_grupo', LAST_INSERT_ID()));
+END$$
+
+-- 12. Gestionar Inscripciones
+DROP PROCEDURE IF EXISTS `sp_get_inscripciones_admin`$$
+CREATE PROCEDURE `sp_get_inscripciones_admin` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_inscripcion', i.id_inscripcion,
+            'id_usuario', i.id_usuario,
+            'id_curso', i.id_curso,
+            'fecha_inscripcion', i.fecha_inscripcion,
+            'usuario_nombre', CONCAT(u.nombre, ' ', u.apellido),
+            'curso_titulo', c.titulo
+        )
+    ) INTO v_resultado 
+    FROM inscripciones i
+    JOIN usuarios u ON i.id_usuario = u.id_usuario
+    JOIN cursos c ON i.id_curso = c.id_curso;
+    SET v_salida = JSON_OBJECT('status','OK','message','Inscripciones obtenidas','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_insert_inscripcion`$$
+CREATE PROCEDURE `sp_insert_inscripcion` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_usuario INT;
+    DECLARE v_id_curso INT;
+    SET v_id_usuario = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_usuario'));
+    SET v_id_curso = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_curso'));
+    
+    IF EXISTS (SELECT 1 FROM inscripciones WHERE id_usuario = v_id_usuario AND id_curso = v_id_curso) THEN
+        SET v_salida = JSON_OBJECT('status','ERROR','message','El usuario ya está inscrito en este curso');
+    ELSE
+        INSERT INTO inscripciones (id_usuario, id_curso) VALUES (v_id_usuario, v_id_curso);
+        SET v_salida = JSON_OBJECT('status','OK','message','Inscripción exitosa');
+    END IF;
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_delete_inscripcion`$$
+CREATE PROCEDURE `sp_delete_inscripcion` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_inscripcion INT;
+    SET v_id_inscripcion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_inscripcion'));
+    DELETE FROM inscripciones WHERE id_inscripcion = v_id_inscripcion;
+    SET v_salida = JSON_OBJECT('status','OK','message','Inscripción eliminada correctamente');
+END$$
+
+-- 13. Gestionar Grupo-Usuarios
+DROP PROCEDURE IF EXISTS `sp_get_grupo_usuarios`$$
+CREATE PROCEDURE `sp_get_grupo_usuarios` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_grupo INT;
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SET v_id_grupo = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_grupo'));
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_usuario', gu.id_usuario,
+            'nombre_completo', CONCAT(u.nombre, ' ', u.apellido),
+            'correo', u.correo
+        )
+    ) INTO v_resultado
+    FROM grupo_usuarios gu
+    JOIN usuarios u ON gu.id_usuario = u.id_usuario
+    WHERE gu.id_grupo = v_id_grupo;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_assign_usuario_grupo`$$
+CREATE PROCEDURE `sp_assign_usuario_grupo` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_grupo INT;
+    DECLARE v_id_usuario INT;
+    SET v_id_grupo = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_grupo'));
+    SET v_id_usuario = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_usuario'));
+    INSERT IGNORE INTO grupo_usuarios (id_grupo, id_usuario) VALUES (v_id_grupo, v_id_usuario);
+    SET v_salida = JSON_OBJECT('status','OK','message','Usuario asignado al grupo');
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_remove_usuario_grupo`$$
+CREATE PROCEDURE `sp_remove_usuario_grupo` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_grupo INT;
+    DECLARE v_id_usuario INT;
+    SET v_id_grupo = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_grupo'));
+    SET v_id_usuario = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_usuario'));
+    DELETE FROM grupo_usuarios WHERE id_grupo = v_id_grupo AND id_usuario = v_id_usuario;
+    SET v_salida = JSON_OBJECT('status','OK','message','Usuario removido del grupo');
+END$$
+
+-- 14. Gestionar Grupo-Lecciones
+DROP PROCEDURE IF EXISTS `sp_get_lecciones_full`$$
+CREATE PROCEDURE `sp_get_lecciones_full` (OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_leccion', l.id_leccion,
+            'titulo_leccion', l.titulo,
+            'titulo_modulo', m.titulo,
+            'titulo_curso', c.titulo
+        )
+    ) INTO v_resultado
+    FROM lecciones l
+    JOIN modulos m ON l.id_modulo = m.id_modulo
+    JOIN cursos c ON m.id_curso = c.id_curso;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_get_grupo_lecciones`$$
+CREATE PROCEDURE `sp_get_grupo_lecciones` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_grupo INT;
+    DECLARE v_resultado JSON DEFAULT JSON_ARRAY();
+    SET v_id_grupo = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_grupo'));
+    SELECT JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id_leccion', gl.id_leccion,
+            'titulo_leccion', l.titulo,
+            'titulo_modulo', m.titulo,
+            'titulo_curso', c.titulo,
+            'activo', gl.activo
+        )
+    ) INTO v_resultado
+    FROM grupo_lecciones gl
+    JOIN lecciones l ON gl.id_leccion = l.id_leccion
+    JOIN modulos m ON l.id_modulo = m.id_modulo
+    JOIN cursos c ON m.id_curso = c.id_curso
+    WHERE gl.id_grupo = v_id_grupo;
+    SET v_salida = JSON_OBJECT('status','OK','data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$'));
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_assign_leccion_grupo`$$
+CREATE PROCEDURE `sp_assign_leccion_grupo` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_grupo INT;
+    DECLARE v_id_leccion INT;
+    SET v_id_grupo = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_grupo'));
+    SET v_id_leccion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_leccion'));
+    INSERT INTO grupo_lecciones (id_grupo, id_leccion, activo) 
+    VALUES (v_id_grupo, v_id_leccion, 1)
+    ON DUPLICATE KEY UPDATE activo = 1;
+    SET v_salida = JSON_OBJECT('status','OK','message','Lección habilitada para el grupo');
+END$$
+
+DROP PROCEDURE IF EXISTS `sp_remove_leccion_grupo`$$
+CREATE PROCEDURE `sp_remove_leccion_grupo` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_grupo INT;
+    DECLARE v_id_leccion INT;
+    SET v_id_grupo = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_grupo'));
+    SET v_id_leccion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_leccion'));
+    DELETE FROM grupo_lecciones WHERE id_grupo = v_id_grupo AND id_leccion = v_id_leccion;
+    SET v_salida = JSON_OBJECT('status','OK','message','Lección removida del grupo');
 END$$
 
 DELIMITER ;

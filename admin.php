@@ -35,9 +35,35 @@ switch ($action) {
         break;
     case 'cursos':
         if ($method === 'GET') $adminController->getCursos();
+        if ($method === 'POST') $adminController->createCurso();
+        break;
+    case 'cursos_estado':
+        if ($method === 'POST') $adminController->updateEstadoCurso();
         break;
     case 'curso_detalle':
         if ($method === 'GET') $adminController->getCursoDetalle();
+        break;
+    case 'grupos':
+        if ($method === 'GET') $adminController->getGrupos();
+        if ($method === 'POST') $adminController->createGrupo();
+        break;
+    case 'inscripciones':
+        if ($method === 'GET') $adminController->getInscripciones();
+        if ($method === 'POST') $adminController->createInscripcion();
+        if ($method === 'DELETE') $adminController->deleteInscripcion();
+        break;
+    case 'grupo_usuarios':
+        if ($method === 'GET') $adminController->getGrupoUsuarios();
+        if ($method === 'POST') $adminController->assignUsuarioGrupo();
+        if ($method === 'DELETE') $adminController->removeUsuarioGrupo();
+        break;
+    case 'grupo_lecciones':
+        if ($method === 'GET') $adminController->getGrupoLecciones();
+        if ($method === 'POST') $adminController->assignLeccionGrupo();
+        if ($method === 'DELETE') $adminController->removeLeccionGrupo();
+        break;
+    case 'lecciones_full':
+        if ($method === 'GET') $adminController->getLeccionesFull();
         break;
     case 'evidencias':
         if ($method === 'POST') $contentController->createEvidencia();
