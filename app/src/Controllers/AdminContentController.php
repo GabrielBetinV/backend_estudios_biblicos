@@ -53,6 +53,42 @@ class AdminContentController {
         echo json_encode(Database::getInstance()->executeProcedure("CALL sp_insert_foro_pregunta_admin(:v_data, @v_salida)", $data));
     }
 
+    public function createModulo(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_insert_modulo(:v_data, @v_salida)", $data));
+    }
+
+    public function createLeccion(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_insert_leccion(:v_data, @v_salida)", $data));
+    }
+
+    public function createSubleccion(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_insert_subleccion(:v_data, @v_salida)", $data));
+    }
+
+    public function updateModulo(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_update_modulo(:v_data, @v_salida)", $data));
+    }
+
+    public function updateLeccion(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_update_leccion(:v_data, @v_salida)", $data));
+    }
+
+    public function updateSubleccion(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_update_subleccion(:v_data, @v_salida)", $data));
+    }
+
     public function manageCategoria(): void {
         $this->validarAdmin();
         $method = $_SERVER['REQUEST_METHOD'];

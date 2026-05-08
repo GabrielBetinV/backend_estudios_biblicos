@@ -26,4 +26,8 @@ class AdminService {
     public function getCursosAdmin() {
         return $this->adminModel->getCursosAdmin();
     }
+
+    public function getCursoDetalle($id_curso) {
+        return $this->adminModel->getCursoDetalle($id_curso);
+    }
 }

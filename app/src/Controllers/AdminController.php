@@ -66,4 +66,15 @@ class AdminController {
         $response = $this->adminService->getCursosAdmin();
         echo json_encode($response);
     }
+
+    public function getCursoDetalle(): void {
+        $this->validarAdmin();
+        $id_curso = $_GET['id_curso'] ?? null;
+        if (!$id_curso) {
+            echo json_encode(["status" => "ERROR", "message" => "ID de curso requerido"]);
+            return;
+        }
+        $response = $this->adminService->getCursoDetalle($id_curso);
+        echo json_encode($response);
+    }
 }

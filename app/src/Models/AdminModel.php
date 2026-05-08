@@ -33,4 +33,11 @@ class AdminModel {
             []
         );
     }
+
+    public function getCursoDetalle($id_curso): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure(
+            "CALL sp_get_curso_detalle_admin(:v_data, @v_salida)",
+            ['id_curso' => $id_curso]
+        );
+    }
 }

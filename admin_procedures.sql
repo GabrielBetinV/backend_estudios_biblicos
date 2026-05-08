@@ -86,7 +86,6 @@ BEGIN
     DECLARE v_id_leccion INT;
     DECLARE v_titulo VARCHAR(255);
     DECLARE v_descripcion TEXT;
-    DECLARE v_duracion INT;
     DECLARE v_orden INT;
     DECLARE v_id_estado INT;
 
@@ -100,7 +99,6 @@ BEGIN
     SET v_id_leccion   = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_leccion'));
     SET v_titulo      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.titulo'));
     SET v_descripcion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
-    SET v_duracion    = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.duracion'));
     SET v_orden       = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.orden'));
     SET v_id_estado   = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_estado'));
 
@@ -108,7 +106,6 @@ BEGIN
     UPDATE lecciones 
     SET titulo = v_titulo,
         descripcion = v_descripcion,
-        duracion = v_duracion,
         orden = v_orden,
         id_estado = v_id_estado
     WHERE id_leccion = v_id_leccion;
@@ -153,6 +150,70 @@ BEGIN
     COMMIT;
 
     SET v_salida = JSON_OBJECT('status','OK','message','Sublección actualizada correctamente');
+END$$
+
+-- 4.1 Insertar Módulo
+DROP PROCEDURE IF EXISTS `sp_insert_modulo`$$
+CREATE PROCEDURE `sp_insert_modulo` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_curso INT;
+    DECLARE v_id_docente INT;
+    DECLARE v_titulo VARCHAR(255);
+    DECLARE v_descripcion TEXT;
+    DECLARE v_orden INT;
+
+    SET v_id_curso     = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_curso'));
+    SET v_id_docente   = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_docente'));
+    SET v_titulo       = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.titulo'));
+    SET v_descripcion  = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+    SET v_orden        = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.orden'));
+
+    INSERT INTO modulos (id_curso, id_docente, titulo, descripcion, orden, id_estado)
+    VALUES (v_id_curso, v_id_docente, v_titulo, v_descripcion, v_orden, 1);
+
+    SET v_salida = JSON_OBJECT('status','OK','message','Módulo creado','data',JSON_OBJECT('id_modulo',LAST_INSERT_ID()));
+END$$
+
+-- 4.2 Insertar Lección
+DROP PROCEDURE IF EXISTS `sp_insert_leccion`$$
+CREATE PROCEDURE `sp_insert_leccion` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_modulo INT;
+    DECLARE v_titulo VARCHAR(255);
+    DECLARE v_descripcion TEXT;
+    DECLARE v_orden INT;
+
+    SET v_id_modulo   = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_modulo'));
+    SET v_titulo      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.titulo'));
+    SET v_descripcion = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.descripcion'));
+    SET v_orden       = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.orden'));
+
+    INSERT INTO lecciones (id_modulo, titulo, descripcion, orden, id_estado)
+    VALUES (v_id_modulo, v_titulo, v_descripcion, v_orden, 1);
+
+    SET v_salida = JSON_OBJECT('status','OK','message','Lección creada','data',JSON_OBJECT('id_leccion',LAST_INSERT_ID()));
+END$$
+
+-- 4.3 Insertar Sublección
+DROP PROCEDURE IF EXISTS `sp_insert_subleccion`$$
+CREATE PROCEDURE `sp_insert_subleccion` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_leccion INT;
+    DECLARE v_titulo VARCHAR(255);
+    DECLARE v_url_recurso VARCHAR(500);
+    DECLARE v_orden INT;
+    DECLARE v_tipo VARCHAR(50);
+
+    SET v_id_leccion   = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_leccion'));
+    SET v_titulo      = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.titulo'));
+    SET v_url_recurso = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.url_recurso'));
+    SET v_orden       = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.orden'));
+    SET v_tipo        = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.tipo'));
+
+    INSERT INTO sublecciones (id_leccion, titulo, url_recurso, orden, id_estado, tipo)
+    VALUES (v_id_leccion, v_titulo, v_url_recurso, v_orden, 1, v_tipo);
+
+    SET v_salida = JSON_OBJECT('status','OK','message','Sublección creada','data',JSON_OBJECT('id_subleccion',LAST_INSERT_ID()));
 END$$
 
 -- 5. Estadísticas del Dashboard
@@ -246,6 +307,108 @@ BEGIN
         'message', 'Cursos obtenidos correctamente',
         'data', JSON_EXTRACT(IFNULL(v_resultado, JSON_ARRAY()), '$')
     );
+END$$
+
+-- 6.3 Obtener Detalle de Curso Completo (Admin)
+DROP PROCEDURE IF EXISTS `sp_get_curso_detalle_admin`$$
+CREATE PROCEDURE `sp_get_curso_detalle_admin` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_curso JSON;
+    DECLARE v_id_curso INT;
+
+    SET v_id_curso = JSON_UNQUOTE(JSON_EXTRACT(v_data, '$.id_curso'));
+
+    -- Obtener info base del curso y anidar módulos, lecciones y sublecciones
+    SELECT JSON_OBJECT(
+        'id_curso', c.id_curso,
+        'titulo', c.titulo,
+        'descripcion', c.descripcion,
+        'precio', c.precio,
+        'id_estado', c.id_estado,
+        'portada', c.portada,
+        'modulos', (
+            SELECT JSON_ARRAYAGG(
+                JSON_OBJECT(
+                    'id_modulo', m.id_modulo,
+                    'titulo', m.titulo,
+                    'descripcion', m.descripcion,
+                    'orden', m.orden,
+                    'lecciones', (
+                        SELECT JSON_ARRAYAGG(
+                            JSON_OBJECT(
+                                'id_leccion', l.id_leccion,
+                                'titulo', l.titulo,
+                                'descripcion', l.descripcion,
+                                'orden', l.orden,
+                                'sublecciones', (
+                                    SELECT JSON_ARRAYAGG(
+                                        JSON_OBJECT(
+                                            'id_subleccion', s.id_subleccion,
+                                            'titulo', s.titulo,
+                                            'url_recurso', s.url_recurso,
+                                            'tipo', s.tipo,
+                                            'orden', s.orden,
+                                            'quiz', (
+                                                SELECT JSON_OBJECT(
+                                                    'id_quiz', q.id_quiz,
+                                                    'titulo', q.titulo,
+                                                    'descripcion', q.descripcion,
+                                                    'preguntas', (
+                                                        SELECT JSON_ARRAYAGG(
+                                                            JSON_OBJECT(
+                                                                'id_pregunta', qp.id_pregunta,
+                                                                'pregunta', qp.pregunta,
+                                                                'opcion_a', qp.opcion_a,
+                                                                'opcion_b', qp.opcion_b,
+                                                                'opcion_c', qp.opcion_c,
+                                                                'opcion_d', qp.opcion_d,
+                                                                'correcta', qp.correcta
+                                                            )
+                                                        )
+                                                        FROM quiz_preguntas qp WHERE qp.id_quiz = q.id_quiz
+                                                    )
+                                                )
+                                                FROM quiz q WHERE q.id_subleccion = s.id_subleccion LIMIT 1
+                                            ),
+                                            'foro', (
+                                                SELECT JSON_OBJECT(
+                                                    'id_pregunta', fp.id_pregunta,
+                                                    'titulo', fp.titulo,
+                                                    'contenido', fp.contenido
+                                                )
+                                                FROM foro_preguntas fp
+                                                INNER JOIN evidencias e ON fp.id_evidencia = e.id_evidencia
+                                                WHERE e.id_subleccion = s.id_subleccion LIMIT 1
+                                            )
+                                        )
+                                    )
+                                    FROM sublecciones s WHERE s.id_leccion = l.id_leccion
+                                )
+                            )
+                        )
+                        FROM lecciones l WHERE l.id_modulo = m.id_modulo
+                    )
+                )
+            )
+            FROM modulos m WHERE m.id_curso = c.id_curso
+        )
+    ) INTO v_curso
+    FROM cursos c
+    WHERE c.id_curso = v_id_curso;
+
+    IF v_curso IS NOT NULL THEN
+        SET v_salida = JSON_OBJECT(
+            'status', 'OK',
+            'message', 'Detalle de curso obtenido correctamente',
+            'data', JSON_ARRAY(JSON_EXTRACT(v_curso, '$'))
+        );
+    ELSE
+        SET v_salida = JSON_OBJECT(
+            'status', 'ERROR',
+            'message', 'Curso no encontrado',
+            'data', NULL
+        );
+    END IF;
 END$$
 
 -- 7. Gestionar Categorías

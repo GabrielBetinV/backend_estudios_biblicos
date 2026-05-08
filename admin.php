@@ -36,8 +36,23 @@ switch ($action) {
     case 'cursos':
         if ($method === 'GET') $adminController->getCursos();
         break;
+    case 'curso_detalle':
+        if ($method === 'GET') $adminController->getCursoDetalle();
+        break;
     case 'evidencias':
         if ($method === 'POST') $contentController->createEvidencia();
+        break;
+    case 'modulos':
+        if ($method === 'POST') $contentController->createModulo();
+        if ($method === 'PUT') $contentController->updateModulo();
+        break;
+    case 'lecciones':
+        if ($method === 'POST') $contentController->createLeccion();
+        if ($method === 'PUT') $contentController->updateLeccion();
+        break;
+    case 'sublecciones':
+        if ($method === 'POST') $contentController->createSubleccion();
+        if ($method === 'PUT') $contentController->updateSubleccion();
         break;
     case 'quiz':
         if ($method === 'POST') $contentController->createQuiz();
