@@ -23,6 +23,10 @@ class AdminService {
         return $this->adminModel->updateRol($data);
     }
 
+    public function updateEstadoUsuario($data) {
+        return $this->adminModel->updateEstadoUsuario($data);
+    }
+
     public function getCursosAdmin() {
         return $this->adminModel->getCursosAdmin();
     }

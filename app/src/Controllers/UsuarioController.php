@@ -219,9 +219,19 @@ public function cambiarContrasenaConToken(): void {
                 return;
             }
 
-            unset($usuario['contrasena']); // Nunca enviar la contraseña al frontend
+            if ($usuario['id_estado'] != 1) {
+                http_response_code(403);
+                echo json_encode([
+                    "status" => "ERROR",
+                    "message" => "Tu cuenta está inactiva. Contacta al administrador.",
+                    "data" => null
+                ]);
+                return;
+            }
+
+            unset($usuario['contrasena']);
             
-     
+      
             // ✅ Generar JWT
             $token = JwtHelper::generarToken([
                 "id_usuario" => $usuario['id_usuario'],

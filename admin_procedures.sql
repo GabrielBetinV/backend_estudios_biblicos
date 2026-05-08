@@ -323,6 +323,24 @@ BEGIN
     SET v_salida = JSON_OBJECT('status','OK','message','Rol de usuario actualizado correctamente');
 END$$
 
+-- 6.1b Actualizar Estado de Usuario
+DROP PROCEDURE IF EXISTS `sp_update_usuario_estado`$$
+CREATE PROCEDURE `sp_update_usuario_estado` (IN `v_data` JSON, OUT `v_salida` JSON)
+BEGIN
+    DECLARE v_id_usuario INT;
+    DECLARE v_id_estado INT;
+
+    SET v_id_usuario = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_usuario'));
+    SET v_id_estado  = JSON_UNQUOTE(JSON_EXTRACT(v_data,'$.id_estado'));
+
+    UPDATE usuarios SET id_estado = v_id_estado WHERE id_usuario = v_id_usuario;
+
+    SET v_salida = JSON_OBJECT(
+        'status','OK',
+        'message', IF(v_id_estado = 1, 'Usuario activado correctamente', 'Usuario inactivado correctamente')
+    );
+END$$
+
 -- 6.2 Obtener todos los Cursos para Admin
 DROP PROCEDURE IF EXISTS `sp_get_cursos_admin`$$
 CREATE PROCEDURE `sp_get_cursos_admin` (OUT `v_salida` JSON)

@@ -33,6 +33,9 @@ switch ($action) {
     case 'usuarios_rol':
         if ($method === 'POST') $adminController->updateUsuarioRol();
         break;
+    case 'usuarios_estado':
+        if ($method === 'POST') $adminController->updateUsuarioEstado();
+        break;
     case 'cursos':
         if ($method === 'GET') $adminController->getCursos();
         if ($method === 'POST') $adminController->createCurso();

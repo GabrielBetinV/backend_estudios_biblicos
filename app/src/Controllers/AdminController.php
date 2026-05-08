@@ -61,6 +61,13 @@ class AdminController {
         echo json_encode($response);
     }
 
+    public function updateUsuarioEstado(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $response = $this->adminService->updateEstadoUsuario($data);
+        echo json_encode($response);
+    }
+
     public function getCursos(): void {
         $this->validarAdmin();
         $response = $this->adminService->getCursosAdmin();

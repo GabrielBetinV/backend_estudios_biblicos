@@ -27,6 +27,10 @@ class AdminModel {
         );
     }
 
+    public function updateEstadoUsuario($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_update_usuario_estado(:v_data, @v_salida)", $data);
+    }
+
     public function getCursosAdmin(): ApiResponseDTO {
         return Database::getInstance()->executeProcedure(
             "CALL sp_get_cursos_admin(@v_salida)",
