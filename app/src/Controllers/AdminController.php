@@ -340,4 +340,94 @@ class AdminController {
         $this->validarAdmin();
         echo json_encode($this->adminService->getSubleccionesAll());
     }
+
+    private function asegurarArray(mixed $data): array
+    {
+        if (is_string($data)) {
+            $decoded = json_decode($data, true);
+            return is_array($decoded) ? $decoded : [];
+        }
+        return is_array($data) ? $data : [];
+    }
+
+    public function descargarReporte(): void {
+        $this->validarAdmin();
+        $response = $this->adminService->getReporteCompleto();
+
+        if ($response->status !== 'OK' || !$response->data) {
+            echo json_encode(["status" => "ERROR", "message" => "No se pudo generar el reporte"]);
+            return;
+        }
+
+        $raw = $this->asegurarArray($response->data);
+
+        $xlsx = new \App\Helpers\XlsxWriter();
+
+        // Usuarios
+        $usuarios = $this->asegurarArray($raw['usuarios'] ?? []);
+        $rows = [];
+        foreach ($usuarios as $u) {
+            $rows[] = [$u['id_usuario'] ?? '', $u['nombre'] ?? '', $u['correo'] ?? '', $u['rol'] ?? '', $u['estado'] ?? '', $u['fecha_registro'] ?? ''];
+        }
+        $xlsx->addSection('USUARIOS', ['ID', 'Nombre', 'Correo', 'Rol', 'Estado', 'Fecha Registro'], $rows);
+
+        // Cursos
+        $cursos = $this->asegurarArray($raw['cursos'] ?? []);
+        $rows = [];
+        foreach ($cursos as $c) {
+            $rows[] = [$c['id_curso'] ?? '', $c['titulo'] ?? '', $c['descripcion'] ?? '', $c['precio'] ?? '', $c['categoria'] ?? '', $c['estado'] ?? '', $c['fecha_creacion'] ?? '', $c['total_inscripciones'] ?? ''];
+        }
+        $xlsx->addSection('CURSOS', ['ID', 'Título', 'Descripción', 'Precio', 'Categoría', 'Estado', 'Fecha Creación', 'Total Inscripciones'], $rows);
+
+        // Inscripciones
+        $inscripciones = $this->asegurarArray($raw['inscripciones'] ?? []);
+        $rows = [];
+        foreach ($inscripciones as $i) {
+            $rows[] = [$i['id_inscripcion'] ?? '', $i['usuario'] ?? '', $i['curso'] ?? '', $i['fecha_inscripcion'] ?? ''];
+        }
+        $xlsx->addSection('INSCRIPCIONES', ['ID', 'Usuario', 'Curso', 'Fecha Inscripción'], $rows);
+
+        // Grupos
+        $grupos = $this->asegurarArray($raw['grupos'] ?? []);
+        $rows = [];
+        foreach ($grupos as $g) {
+            $rows[] = [$g['id_grupo'] ?? '', $g['nombre'] ?? '', $g['descripcion'] ?? '', $g['estado'] ?? '', $g['total_usuarios'] ?? '', $g['total_lecciones'] ?? ''];
+        }
+        $xlsx->addSection('GRUPOS', ['ID', 'Nombre', 'Descripción', 'Estado', 'Total Usuarios', 'Total Lecciones'], $rows);
+
+        // Resultados
+        $resultados = $this->asegurarArray($raw['resultados'] ?? []);
+        $rows = [];
+        foreach ($resultados as $r) {
+            $rows[] = [
+                $r['id_resultado'] ?? '', $r['usuario'] ?? '', $r['curso'] ?? '',
+                $r['modulo'] ?? '', $r['leccion'] ?? '', $r['subleccion'] ?? '',
+                $r['grupo'] ?? '', $r['evidencia'] ?? '', $r['tipo'] ?? '',
+                $r['nota'] ?? '', $r['fecha'] ?? ''
+            ];
+        }
+        $xlsx->addSection('RESULTADOS (NOTAS)', ['ID', 'Usuario', 'Curso', 'Módulo', 'Lección', 'Sublección', 'Grupo', 'Evidencia', 'Tipo', 'Nota', 'Fecha'], $rows);
+
+        // Progreso
+        $progreso = $this->asegurarArray($raw['progreso'] ?? []);
+        $rows = [];
+        foreach ($progreso as $p) {
+            $rows[] = [$p['id_progreso'] ?? '', $p['usuario'] ?? '', $p['curso'] ?? '', $p['progreso'] ?? '', $p['fecha_actualizacion'] ?? ''];
+        }
+        $xlsx->addSection('PROGRESO POR ESTUDIANTE', ['ID', 'Usuario', 'Curso', 'Progreso (%)', 'Fecha Actualización'], $rows);
+
+        // Generar XLSX y enviar
+        $tmpFile = tempnam(sys_get_temp_dir(), 'reporte_') . '.xlsx';
+        $xlsx->generate($tmpFile);
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment; filename="reporte_escuela_' . date('Y-m-d') . '.xlsx"');
+        header('Content-Length: ' . filesize($tmpFile));
+        header('Pragma: no-cache');
+        header('Expires: 0');
+
+        readfile($tmpFile);
+        unlink($tmpFile);
+        exit;
+    }
 }

@@ -194,4 +194,8 @@ class AdminService {
     public function getSubleccionesAll() {
         return $this->adminModel->getSubleccionesAll();
     }
+
+    public function getReporteCompleto() {
+        return $this->adminModel->getReporteCompleto();
+    }
 }

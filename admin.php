@@ -145,6 +145,9 @@ switch ($action) {
     case 'avance_estudiantes':
         if ($method === 'GET') $adminController->getAvanceEstudiantes();
         break;
+    case 'reporte':
+        if ($method === 'GET') $adminController->descargarReporte();
+        break;
     default:
         http_response_code(404);
         echo json_encode(["status" => "ERROR", "message" => "Acción no válida."]);

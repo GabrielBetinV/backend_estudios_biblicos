@@ -210,4 +210,8 @@ class AdminModel {
     public function getSubleccionesAll(): ApiResponseDTO {
         return Database::getInstance()->executeProcedure("CALL sp_get_sublecciones_admin(@v_salida)", []);
     }
+
+    public function getReporteCompleto(): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_get_reporte_completo(@v_salida)", []);
+    }
 }
