@@ -50,10 +50,19 @@ switch ($action) {
     case 'curso_detalle':
         if ($method === 'GET') $adminController->getCursoDetalle();
         break;
+    case 'cursos_inscritos':
+        if ($method === 'GET') $adminController->getCursosByUsuario();
+        break;
+    case 'resultados_estudiante':
+        if ($method === 'GET') $adminController->getResultadosByUsuarioCurso();
+        break;
     case 'grupos':
         if ($method === 'GET') $adminController->getGrupos();
         if ($method === 'POST') $adminController->createGrupo();
         if ($method === 'DELETE') $adminController->deleteGrupo();
+        break;
+    case 'grupos_estado':
+        if ($method === 'POST') $adminController->updateEstadoGrupo();
         break;
     case 'inscripciones':
         if ($method === 'GET') $adminController->getInscripciones();

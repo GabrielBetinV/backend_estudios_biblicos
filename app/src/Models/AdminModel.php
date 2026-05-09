@@ -181,6 +181,24 @@ class AdminModel {
         return Database::getInstance()->executeProcedure("CALL sp_get_avance_estudiantes(@v_salida)", []);
     }
 
+    public function getCursosByUsuario($id_usuario): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure(
+            "CALL sp_get_cursos_inscritos_by_usuario(:v_data, @v_salida)",
+            ['id_usuario' => $id_usuario]
+        );
+    }
+
+    public function getResultadosByUsuarioCurso($id_usuario, $id_curso): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure(
+            "CALL sp_get_resultados_by_usuario_curso(:v_data, @v_salida)",
+            ['id_usuario' => $id_usuario, 'id_curso' => $id_curso]
+        );
+    }
+
+    public function updateEstadoGrupo($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_update_estado_grupo(:v_data, @v_salida)", $data);
+    }
+
     public function deleteCurso($data): ApiResponseDTO {
         return Database::getInstance()->executeProcedure("CALL sp_delete_curso(:v_data, @v_salida)", $data);
     }

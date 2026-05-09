@@ -124,6 +124,33 @@ class AdminController {
         echo json_encode($this->adminService->getGrupos());
     }
 
+    public function updateEstadoGrupo(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->updateEstadoGrupo($data));
+    }
+
+    public function getCursosByUsuario(): void {
+        $this->validarAdmin();
+        $id_usuario = $_GET['id_usuario'] ?? null;
+        if (!$id_usuario) {
+            echo json_encode(["status" => "ERROR", "message" => "ID de usuario requerido"]);
+            return;
+        }
+        echo json_encode($this->adminService->getCursosByUsuario($id_usuario));
+    }
+
+    public function getResultadosByUsuarioCurso(): void {
+        $this->validarAdmin();
+        $id_usuario = $_GET['id_usuario'] ?? null;
+        $id_curso = $_GET['id_curso'] ?? null;
+        if (!$id_usuario || !$id_curso) {
+            echo json_encode(["status" => "ERROR", "message" => "ID de usuario y curso requeridos"]);
+            return;
+        }
+        echo json_encode($this->adminService->getResultadosByUsuarioCurso($id_usuario, $id_curso));
+    }
+
     public function deleteCurso(): void {
         $this->validarAdmin();
         $data = json_decode(file_get_contents('php://input'), true);

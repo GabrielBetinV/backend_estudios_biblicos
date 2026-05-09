@@ -171,6 +171,18 @@ class AdminService {
         return $this->adminModel->getAvanceEstudiantes();
     }
 
+    public function updateEstadoGrupo($data) {
+        return $this->adminModel->updateEstadoGrupo($data);
+    }
+
+    public function getCursosByUsuario($id_usuario) {
+        return $this->adminModel->getCursosByUsuario($id_usuario);
+    }
+
+    public function getResultadosByUsuarioCurso($id_usuario, $id_curso) {
+        return $this->adminModel->getResultadosByUsuarioCurso($id_usuario, $id_curso);
+    }
+
     public function deleteCurso($data) {
         return $this->adminModel->deleteCurso($data);
     }
