@@ -93,8 +93,8 @@ class AdminModel {
         return Database::getInstance()->executeProcedure("CALL sp_assign_leccion_grupo(:v_data, @v_salida)", $data);
     }
 
-    public function addDiasGraciaLeccionGrupo($data): ApiResponseDTO {
-        return Database::getInstance()->executeProcedure("CALL sp_add_dias_gracia_leccion_grupo(:v_data, @v_salida)", $data);
+    public function setFechaLimiteLeccionGrupo($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure("CALL sp_set_fecha_limite_leccion_grupo(:v_data, @v_salida)", $data);
     }
 
     public function getLeccionesFull(): ApiResponseDTO {

@@ -79,8 +79,8 @@ switch ($action) {
         if ($method === 'POST') $adminController->assignLeccionGrupo();
         if ($method === 'DELETE') $adminController->removeLeccionGrupo();
         break;
-    case 'grupo_lecciones_gracia':
-        if ($method === 'POST') $adminController->addDiasGraciaLeccionGrupo();
+    case 'grupo_lecciones_fecha_limite':
+        if ($method === 'POST') $adminController->setFechaLimiteLeccionGrupo();
         break;
     case 'lecciones_full':
         if ($method === 'GET') $adminController->getLeccionesFull();

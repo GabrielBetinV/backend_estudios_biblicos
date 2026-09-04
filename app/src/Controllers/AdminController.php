@@ -217,10 +217,10 @@ class AdminController {
         echo json_encode($this->adminService->assignLeccionGrupo($data));
     }
 
-    public function addDiasGraciaLeccionGrupo(): void {
+    public function setFechaLimiteLeccionGrupo(): void {
         $this->validarAdmin();
         $data = json_decode(file_get_contents('php://input'), true);
-        echo json_encode($this->adminService->addDiasGraciaLeccionGrupo($data));
+        echo json_encode($this->adminService->setFechaLimiteLeccionGrupo($data));
     }
 
     public function getLeccionesFull(): void {
