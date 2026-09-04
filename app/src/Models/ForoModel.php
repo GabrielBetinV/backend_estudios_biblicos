@@ -8,19 +8,21 @@ use App\DTO\ApiResponseDTO;
 class ForoModel {
 
     // 🔹 Consultar preguntas por módulo
-    public function getPreguntasByCurso($id_curso,$id_usuario,$id_leccion,$id_subleccion ): ApiResponseDTO {
+    public function getPreguntasByCurso($id_curso,$id_usuario,$id_leccion,$id_subleccion, $id_grupo = null ): ApiResponseDTO {
         
+        $params = [
+            'id_curso'   => $id_curso,
+            'id_usuario' => $id_usuario,
+            'id_leccion'  => $id_leccion ,
+            'id_subleccion' => $id_subleccion
+        ];
+        if (!empty($id_grupo)) {
+            $params['id_grupo'] = $id_grupo;
+        }
+
         return Database::getInstance()->executeProcedure(
             "CALL sp_get_foro_pregunta_por_curso(:v_data, @v_salida)",
-             [
-      
-         
-                  'id_curso'   => $id_curso,
-                  'id_usuario' => $id_usuario,
-                  'id_leccion'  => $id_leccion ,
-                  'id_subleccion' => $id_subleccion
-         
-         ]
+            $params
         );
     }
 
@@ -57,4 +59,6 @@ class ForoModel {
             ['v_data' => $jsonInput]
         );
     }
+
+
 }

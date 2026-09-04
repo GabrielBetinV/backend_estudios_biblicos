@@ -144,11 +144,12 @@ class AdminController {
         $this->validarAdmin();
         $id_usuario = $_GET['id_usuario'] ?? null;
         $id_curso = $_GET['id_curso'] ?? null;
+        $id_grupo = $_GET['id_grupo'] ?? null;
         if (!$id_usuario || !$id_curso) {
             echo json_encode(["status" => "ERROR", "message" => "ID de usuario y curso requeridos"]);
             return;
         }
-        echo json_encode($this->adminService->getResultadosByUsuarioCurso($id_usuario, $id_curso));
+        echo json_encode($this->adminService->getResultadosByUsuarioCurso($id_usuario, $id_curso, $id_grupo));
     }
 
     public function deleteCurso(): void {

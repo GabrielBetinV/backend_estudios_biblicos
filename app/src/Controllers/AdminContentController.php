@@ -46,11 +46,36 @@ class AdminContentController {
         $res = Database::getInstance()->executeProcedure("CALL sp_insert_quiz_pregunta(:v_data, @v_salida)", $data);
         echo json_encode($res);
     }
+    
+    
+    public function updateQuiz(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $res = Database::getInstance()->executeProcedure("CALL sp_update_quiz(:v_data, @v_salida)", $data);
+        echo json_encode($res);
+    }
+
+    public function deleteQuizPreguntas(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        $res = Database::getInstance()->executeProcedure("CALL sp_delete_quiz_preguntas(:v_data, @v_salida)", $data);
+        echo json_encode($res);
+    }
+
+    
+    
 
     public function createForoPregunta(): void {
         $this->validarAdmin();
         $data = json_decode(file_get_contents('php://input'), true);
         echo json_encode(Database::getInstance()->executeProcedure("CALL sp_insert_foro_pregunta_admin(:v_data, @v_salida)", $data));
+    }
+    
+    
+    public function updateForoPregunta(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_update_foro_pregunta(:v_data, @v_salida)", $data));
     }
 
     public function createModulo(): void {
@@ -87,6 +112,24 @@ class AdminContentController {
         $this->validarAdmin();
         $data = json_decode(file_get_contents('php://input'), true);
         echo json_encode(Database::getInstance()->executeProcedure("CALL sp_update_subleccion(:v_data, @v_salida)", $data));
+    }
+
+    public function deleteModulo(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_delete_modulo(:v_data, @v_salida)", $data));
+    }
+
+    public function deleteLeccion(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_delete_leccion(:v_data, @v_salida)", $data));
+    }
+
+    public function deleteSubleccion(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode(Database::getInstance()->executeProcedure("CALL sp_delete_subleccion(:v_data, @v_salida)", $data));
     }
 
     public function manageCategoria(): void {

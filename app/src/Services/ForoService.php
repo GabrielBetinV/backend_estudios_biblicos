@@ -11,8 +11,8 @@ class ForoService {
         $this->foroModel = new ForoModel();
     }
 
-    public function getPreguntasByCurso($id_curso,$id_usuario,$id_leccion,$id_subleccion) {
-        return $this->foroModel->getPreguntasByCurso($id_curso,$id_usuario,$id_leccion,$id_subleccion);
+    public function getPreguntasByCurso($id_curso,$id_usuario,$id_leccion,$id_subleccion, $id_grupo = null) {
+        return $this->foroModel->getPreguntasByCurso($id_curso,$id_usuario,$id_leccion,$id_subleccion, $id_grupo);
     }
 
     public function insertPregunta(array $data) {

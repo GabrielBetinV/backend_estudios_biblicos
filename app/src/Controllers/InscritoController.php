@@ -36,7 +36,7 @@ class InscritoController
         }
     }
 
-    public function getCursosInscritos($idCurso): void
+    public function getCursosInscritos($idCurso, $idGrupo = null): void
     {
         $usuario = $this->validarToken();
 
@@ -47,7 +47,7 @@ class InscritoController
         }
 
         try {
-            $response = $this->service->getCursosInscritos($usuario['id_usuario'], $idCurso);
+            $response = $this->service->getCursosInscritos($usuario['id_usuario'], $idCurso, $idGrupo);
             echo json_encode($response);
         } catch (Exception $e) {
             http_response_code(500);
@@ -68,7 +68,7 @@ class InscritoController
         }
 
         try {
-            $response = $this->service->actualizarProgreso($usuario['id_usuario'], $data['id_curso'], $data['progreso']);
+            $response = $this->service->actualizarProgreso($usuario['id_usuario'], $data['id_curso'], $data['progreso'], $data['id_grupo'] ?? null);
             echo json_encode($response);
         } catch (Exception $e) {
             http_response_code(500);
@@ -88,7 +88,7 @@ class InscritoController
         }
 
         try {
-            $response = $this->service->actualizarResultado($usuario['id_usuario'], $data['id_quiz'], $data['resultado']);
+            $response = $this->service->actualizarResultado($usuario['id_usuario'], $data['id_quiz'], $data['resultado'], $data['id_grupo'] ?? null);
             echo json_encode($response);
         } catch (Exception $e) {
             http_response_code(500);
@@ -110,7 +110,7 @@ class InscritoController
         }
 
         try {
-            $response = $this->service->actualizarProgresoSubleccion($usuario['id_usuario'], $data['id_curso'], id_leccion: $data['id_leccion'], id_subleccion: $data['id_subleccion'], completed: $data['completed']);
+            $response = $this->service->actualizarProgresoSubleccion($usuario['id_usuario'], $data['id_curso'], id_leccion: $data['id_leccion'], id_subleccion: $data['id_subleccion'], completed: $data['completed'], id_grupo: $data['id_grupo'] ?? null);
             echo json_encode($response);
         } catch (Exception $e) {
             http_response_code(500);

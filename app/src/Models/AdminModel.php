@@ -188,10 +188,14 @@ class AdminModel {
         );
     }
 
-    public function getResultadosByUsuarioCurso($id_usuario, $id_curso): ApiResponseDTO {
+    public function getResultadosByUsuarioCurso($id_usuario, $id_curso, $id_grupo = null): ApiResponseDTO {
+        $data = ['id_usuario' => $id_usuario, 'id_curso' => $id_curso];
+        if (!empty($id_grupo)) {
+            $data['id_grupo'] = $id_grupo;
+        }
         return Database::getInstance()->executeProcedure(
             "CALL sp_get_resultados_by_usuario_curso(:v_data, @v_salida)",
-            ['id_usuario' => $id_usuario, 'id_curso' => $id_curso]
+            $data
         );
     }
 
