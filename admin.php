@@ -88,15 +88,18 @@ switch ($action) {
     case 'modulos':
         if ($method === 'POST') $contentController->createModulo();
         if ($method === 'PUT') $contentController->updateModulo();
+        if ($method === 'DELETE') $contentController->deleteModulo();
         break;
     case 'lecciones':
         if ($method === 'POST') $contentController->createLeccion();
         if ($method === 'PUT') $contentController->updateLeccion();
+        if ($method === 'DELETE') $contentController->deleteLeccion();
         break;
     case 'sublecciones':
         if ($method === 'GET') $adminController->getSubleccionesAll();
         if ($method === 'POST') $contentController->createSubleccion();
         if ($method === 'PUT') $contentController->updateSubleccion();
+        if ($method === 'DELETE') $contentController->deleteSubleccion();
         break;
     case 'quiz':
         if ($method === 'POST') $contentController->createQuiz();
@@ -104,8 +107,15 @@ switch ($action) {
     case 'quiz_pregunta':
         if ($method === 'POST') $contentController->addQuizPregunta();
         break;
+    case 'quiz_update':
+        if ($method === 'PUT') $contentController->updateQuiz();
+        break;
+    case 'quiz_preguntas':
+        if ($method === 'DELETE') $contentController->deleteQuizPreguntas();
+        break;
     case 'foro_pregunta':
         if ($method === 'POST') $contentController->createForoPregunta();
+        if ($method === 'PUT') $contentController->updateForoPregunta();
         break;
     case 'categorias':
         $contentController->manageCategoria();

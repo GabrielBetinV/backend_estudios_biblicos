@@ -41,7 +41,7 @@ class ForoController {
         }
     }
 
-    // ✅ Obtener todas las preguntas de un módulo
+       // ✅ Obtener todas las preguntas de un módulo
     public function getPreguntasByCurso(): void {
         $usuario = $this->validarToken();
         $data = json_decode(file_get_contents('php://input'), true);
@@ -52,8 +52,10 @@ class ForoController {
             return;
         }
 
+        $idGrupo = $data['id_grupo'] ?? null;
+
         try {
-            $response = $this->foroService->getPreguntasByCurso($data['id_curso'],$usuario['id_usuario'],$data['id_leccion'],$data['id_subleccion']);
+            $response = $this->foroService->getPreguntasByCurso($data['id_curso'],$usuario['id_usuario'],$data['id_leccion'],$data['id_subleccion'], $idGrupo);
             echo json_encode($response);
         } catch (Exception $e) {
             http_response_code(500);
@@ -95,6 +97,7 @@ class ForoController {
         }
 
         $data['id_usuario'] = $usuario['id_usuario'];
+        $data['id_grupo'] = $data['id_grupo'] ?? null;
 
         try {
             $response = $this->foroService->insertRespuesta($data);
@@ -117,6 +120,7 @@ class ForoController {
         }
 
         $data['id_usuario'] = $usuario['id_usuario'];
+        $data['id_grupo'] = $data['id_grupo'] ?? null;
 
         try {
             $response = $this->foroService->insertComentario($data);
@@ -126,4 +130,5 @@ class ForoController {
             echo json_encode(["status" => "ERROR", "message" => $e->getMessage()]);
         }
     }
+
 }

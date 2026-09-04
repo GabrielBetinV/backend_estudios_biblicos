@@ -179,8 +179,8 @@ class AdminService {
         return $this->adminModel->getCursosByUsuario($id_usuario);
     }
 
-    public function getResultadosByUsuarioCurso($id_usuario, $id_curso) {
-        return $this->adminModel->getResultadosByUsuarioCurso($id_usuario, $id_curso);
+    public function getResultadosByUsuarioCurso($id_usuario, $id_curso, $id_grupo = null) {
+        return $this->adminModel->getResultadosByUsuarioCurso($id_usuario, $id_curso, $id_grupo);
     }
 
     public function deleteCurso($data) {

@@ -34,7 +34,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     if (isset($_GET['id_curso']) && !empty($_GET['id_curso'])) {
         $idCurso = intval($_GET['id_curso']);
-        $controller->getCursosInscritos($idCurso);
+        $idGrupo = isset($_GET['id_grupo']) && !empty($_GET['id_grupo']) ? intval($_GET['id_grupo']) : null;
+        $controller->getCursosInscritos($idCurso, $idGrupo);
     } else {
         http_response_code(400);
         echo json_encode(["status" => "ERROR", "message" => "Se requiere el parámetro id_curso"]);
