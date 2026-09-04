@@ -217,6 +217,12 @@ class AdminController {
         echo json_encode($this->adminService->assignLeccionGrupo($data));
     }
 
+    public function addDiasGraciaLeccionGrupo(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->addDiasGraciaLeccionGrupo($data));
+    }
+
     public function getLeccionesFull(): void {
         $this->validarAdmin();
         echo json_encode($this->adminService->getLeccionesFull());

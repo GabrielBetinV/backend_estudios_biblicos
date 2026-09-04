@@ -83,6 +83,10 @@ class AdminService {
         return $this->adminModel->assignLeccionGrupo($data);
     }
 
+    public function addDiasGraciaLeccionGrupo($data) {
+        return $this->adminModel->addDiasGraciaLeccionGrupo($data);
+    }
+
     public function getLeccionesFull() {
         return $this->adminModel->getLeccionesFull();
     }

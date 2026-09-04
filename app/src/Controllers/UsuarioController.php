@@ -41,7 +41,7 @@ class UsuarioController {
             direccion: $data['direccion'] ?? null,
             id_rol: $data['id_rol'] ?? 1,
             fecha_registro: $data['fecha_registro'] ?? date('Y-m-d H:i:s'),
-            id_estado: $data['id_estado'] ?? 3
+            id_estado: $data['id_estado'] ?? 1
         );
 
         try {
