@@ -59,6 +59,10 @@ elseif ($method === 'POST') {
             $controller->actualizarProgresoSubleccion();
             break;
 
+        case 'guardar_reflexion':
+            $controller->guardarReflexion();
+            break;
+
         default:
             http_response_code(400);
             echo json_encode(["status" => "ERROR", "message" => "Acción no reconocida. Usa ?action=actualizar_progreso o ?action=actualizar_resultado"]);

@@ -203,6 +203,27 @@ class AdminModel {
         );
     }
 
+    public function getReflexionesAdmin($id_curso, $id_grupo = null, $id_leccion = null): ApiResponseDTO {
+        $data = ['id_curso' => $id_curso];
+        if (!empty($id_grupo)) {
+            $data['id_grupo'] = $id_grupo;
+        }
+        if (!empty($id_leccion)) {
+            $data['id_leccion'] = $id_leccion;
+        }
+        return Database::getInstance()->executeProcedure(
+            "CALL sp_get_reflexiones_admin(:v_data, @v_salida)",
+            $data
+        );
+    }
+
+    public function setRetroalimentacionReflexion($data): ApiResponseDTO {
+        return Database::getInstance()->executeProcedure(
+            "CALL sp_set_retroalimentacion_reflexion(:v_data, @v_salida)",
+            $data
+        );
+    }
+
     public function updateEstadoGrupo($data): ApiResponseDTO {
         return Database::getInstance()->executeProcedure("CALL sp_update_estado_grupo(:v_data, @v_salida)", $data);
     }

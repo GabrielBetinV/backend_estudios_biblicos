@@ -53,6 +53,21 @@ public function actualizarResultado($id_usuario, $id_quiz, $resultado, $id_grupo
     );
 }
 
+public function guardarReflexion($id_usuario, $id_evidencia, $respuesta, $id_grupo = null): ApiResponseDTO {
+    $data = [
+        'id_usuario'   => $id_usuario,
+        'id_evidencia' => $id_evidencia,
+        'respuesta'    => $respuesta
+    ];
+    if (!empty($id_grupo)) {
+        $data['id_grupo'] = $id_grupo;
+    }
+    return Database::getInstance()->executeProcedure(
+        "CALL sp_insert_reflexion_respuesta(:v_data, @v_salida)",
+        $data
+    );
+}
+
 public function actualizarProgresoSubleccion($id_usuario, $id_curso, $id_leccion ,$id_subleccion, $completed, $id_grupo = null): ApiResponseDTO {
     $data = [
         'id_usuario' => $id_usuario,

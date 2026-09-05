@@ -152,6 +152,24 @@ class AdminController {
         echo json_encode($this->adminService->getResultadosByUsuarioCurso($id_usuario, $id_curso, $id_grupo));
     }
 
+    public function getReflexionesAdmin(): void {
+        $this->validarAdmin();
+        $id_curso = $_GET['id_curso'] ?? null;
+        $id_grupo = $_GET['id_grupo'] ?? null;
+        $id_leccion = $_GET['id_leccion'] ?? null;
+        if (!$id_curso) {
+            echo json_encode(["status" => "ERROR", "message" => "ID de curso requerido"]);
+            return;
+        }
+        echo json_encode($this->adminService->getReflexionesAdmin($id_curso, $id_grupo, $id_leccion));
+    }
+
+    public function setRetroalimentacionReflexion(): void {
+        $this->validarAdmin();
+        $data = json_decode(file_get_contents('php://input'), true);
+        echo json_encode($this->adminService->setRetroalimentacionReflexion($data));
+    }
+
     public function deleteCurso(): void {
         $this->validarAdmin();
         $data = json_decode(file_get_contents('php://input'), true);

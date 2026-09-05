@@ -98,7 +98,27 @@ class InscritoController
 
 
 
-        public function actualizarProgresoSubleccion(): void
+        public function guardarReflexion(): void
+    {
+        $usuario = $this->validarToken();
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (empty($usuario['id_usuario']) || empty($data['id_evidencia']) || !isset($data['respuesta'])) {
+            http_response_code(400);
+            echo json_encode(["status" => "ERROR", "message" => "Datos incompletos. Se requiere id_evidencia y respuesta."]);
+            return;
+        }
+
+        try {
+            $response = $this->service->guardarReflexion($usuario['id_usuario'], $data['id_evidencia'], $data['respuesta'], $data['id_grupo'] ?? null);
+            echo json_encode($response);
+        } catch (Exception $e) {
+            http_response_code(500);
+            echo json_encode(["status" => "ERROR", "message" => $e->getMessage()]);
+        }
+    }
+
+    public function actualizarProgresoSubleccion(): void
     {
         $usuario = $this->validarToken();
         $data = json_decode(file_get_contents("php://input"), true);

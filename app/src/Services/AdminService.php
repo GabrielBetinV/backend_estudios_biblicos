@@ -187,6 +187,14 @@ class AdminService {
         return $this->adminModel->getResultadosByUsuarioCurso($id_usuario, $id_curso, $id_grupo);
     }
 
+    public function getReflexionesAdmin($id_curso, $id_grupo = null, $id_leccion = null) {
+        return $this->adminModel->getReflexionesAdmin($id_curso, $id_grupo, $id_leccion);
+    }
+
+    public function setRetroalimentacionReflexion($data) {
+        return $this->adminModel->setRetroalimentacionReflexion($data);
+    }
+
     public function deleteCurso($data) {
         return $this->adminModel->deleteCurso($data);
     }

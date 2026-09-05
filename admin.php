@@ -56,6 +56,12 @@ switch ($action) {
     case 'resultados_estudiante':
         if ($method === 'GET') $adminController->getResultadosByUsuarioCurso();
         break;
+    case 'reflexiones_admin':
+        if ($method === 'GET') $adminController->getReflexionesAdmin();
+        break;
+    case 'reflexion_retroalimentacion':
+        if ($method === 'POST') $adminController->setRetroalimentacionReflexion();
+        break;
     case 'grupos':
         if ($method === 'GET') $adminController->getGrupos();
         if ($method === 'POST') $adminController->createGrupo();

@@ -31,6 +31,11 @@ class InscritoService
 
 
 
+    public function guardarReflexion($id_usuario, $id_evidencia, $respuesta, $id_grupo = null)
+    {
+        return $this->model->guardarReflexion($id_usuario, $id_evidencia, $respuesta, $id_grupo);
+    }
+
     public function actualizarProgresoSubleccion($id_usuario, $id_curso, $id_leccion ,$id_subleccion, $completed, $id_grupo = null)
     {
         return $this->model->actualizarProgresoSubleccion($id_usuario, $id_curso, $id_leccion ,$id_subleccion, $completed, $id_grupo);
